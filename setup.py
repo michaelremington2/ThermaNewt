@@ -10,7 +10,7 @@ with open("README.md", "r") as fh:
 setup(
     name='rattle-newton',
     version='0.0.1',
-    url='https://github.com/michaelremington2/uumarrty',
+    url='https://github.com/michaelremington2/rattle-newton',
     author='Michael Remington and Jeet Sukumaran',
     author_email='michaelremington2@gmail.com',
     license="LICENSE.txt",
@@ -21,9 +21,10 @@ setup(
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     ],
-    scripts=[
-        "bin/simulate_uumarrty.py",
-        ],
+    # scripts=[
+    #     "src/rattle_newton/sim_snake_tb.py",
+    #     "src/rattle_newton/thermal_summary_stats.py",
+    #     ],
     test_suite = "tests",
     package_dir={"": "src"},
     description="Ectotherm body temperature simulator using newtons law of cooling.",
