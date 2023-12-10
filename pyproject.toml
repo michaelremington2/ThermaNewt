@@ -1,3 +1,23 @@
 [build-system]
 # Minimum requirements for the build system to execute.
 requires = ["setuptools", "wheel"]  # PEP 508 specifications.
+
+[project]
+name = "rattle_newton"
+version = "0.0.1"
+authors = [
+  { name="Michael Remington", email="michaelremington2@gmail.com" },
+  { name="Jeet Sukumaran", email="jsukumaran@sdsu.edu"},
+]
+license = {file = "LICENSE.txt"}
+description = "Ectotherm body temperature simulator using newtons law of cooling."
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+Homepage = "https://github.com/michaelremington2/rattle-newton"
