@@ -107,7 +107,7 @@ class thermal_simulator(object):
     		if t_crit_min is None or t_crit_max is None:
     			if t_body<=t_pref_min and open_temp>burrow_temp:
 		        	# Leave Burrow to warm up
-		            t_env=max_outside_env_val #go to the warmest microhabitat
+		            t_env=open_temp #go to the warmest microhabitat
 		            bu = 'Out'
 		            mh = row.columns[max_outside_env_index]
 		        elif t_body>=t_pref_max and open_temp>burrow_temp:
@@ -131,7 +131,7 @@ class thermal_simulator(object):
 		            bu = 'In'
 		        elif t_body<=t_pref_min and open_temp>burrow_temp:
 		        	# Leave Burrow to warm up
-		            t_env=max_outside_env_val #go to the warmest microhabitat
+		            t_env=open_temp #go to the warmest microhabitat
 		            bu = 'Out'
 		        elif t_body>=t_pref_max and open_temp>burrow_temp:
 		        	# go into cool mh to cool down
