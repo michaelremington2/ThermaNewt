@@ -10,7 +10,7 @@ class thermal_simulator(object):
     def rate_of_heat_transfer_k(self, k, t_body, t_env):
         return k*(t_body-t_env)
 
-    def coolong_eq_k(self,k, t_body, t_env, time):
+    def cooling_eq_k(self, k, t_body, t_env, time):
         return t_env+(t_body-t_env)*math.exp(-k*time)
 
     def k_approximation(self,t_body, t_body_prev, tenv_prev,  time):
@@ -43,9 +43,9 @@ class thermal_simulator(object):
 
     def tb_simulator_n_state_model(self, 
                                    k, t_initial,
-                                   t_pref_min, t_pref_max, burrow_temp_vector, **t_env_vectors,
+                                   t_pref_min, t_pref_max, burrow_temp_vector,
                                    t_crit_min=None, t_crit_max=None,
-                                   return_tbody_sim=False, return_microhabitat=False):
+                                   return_tbody_sim=False, return_microhabitat=False, **t_env_vectors,):
         simulated_t_body = []
         burrow_usage = []
         microhabitat = []
@@ -88,15 +88,14 @@ class thermal_simulator(object):
                     # forage
             simulated_t_body.append(t_body)
             burrow_usage.append(bu)
-            delta_t = rate_of_heat_transfer_k(k=k, t_body=t_body, t_env=t_env)
-            t_deltas.append(delta_t)
-            t_body = coolong_eq_k(k=k, t_body=t_body, t_env=t_env, time=time)
+            t_body = self.cooling_eq_k(k=k, t_body=t_body, t_env=t_env, time=time)
             #t_body = round(t_body + rate_of_heat_transfer_k(k=k, t_body=t_body, t_env=t_env),5)
             time+=1
 
     def tb_simulator_2_state_model(self, 
                                    k, t_initial,
-                                   t_pref_min, t_pref_max, burrow_temp_vector, open_temp_vector,
+                                   t_pref_min, t_pref_max,
+                                    burrow_temp_vector, open_temp_vector,
                                    t_crit_min=None, t_crit_max=None,
                                    return_tbody_sim=False):
         simulated_t_body = []
@@ -147,7 +146,7 @@ class thermal_simulator(object):
                     # forage
             simulated_t_body.append(t_body)
             burrow_usage.append(bu)
-            t_body = coolong_eq_k(k=k, t_body=t_body, t_env=t_env, time=time)
+            t_body = self.cooling_eq_k(k=k, t_body=t_body, t_env=t_env, time=time)
             time+=1
         if return_tbody_sim:
             return burrow_usage, simulated_t_body
