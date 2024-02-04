@@ -29,10 +29,16 @@ class ActiveDebouncer(object):
 
 
 class ThermalSimulator(object):
-    def __init__(self, flip_logic, seed=None, Debounce=0):
+    def __init__(self, flip_logic, t_pref_min, t_pref_max, t_pref_opt, seed=None, Debounce=0):
         self.deb_class = ActiveDebouncer(threshold=Debounce)
         self.flip_logic = flip_logic
+        self.t_pref_min = t_pref_min
+        self.t_pref_max = t_pref_max
+        self.t_pref_opt = t_pref_opt
         self.rng = np.random.default_rng(seed)
+        self.state_switch = None
+        self.current_state = None
+
 
     def rate_of_heat_transfer_k(self, k, t_body, t_env):
         return k*(t_body-t_env)
@@ -68,77 +74,69 @@ class ThermalSimulator(object):
             val='Constant'
         return val
 
-    def do_i_flip(self, t_body, t_pref_min, t_pref_max,
-                        burrow_temp, open_temp,
-                        t_crit_min=None, t_crit_max=None):
+    def random_flips(self):
+        if self.rng.random() <= 0.5:
+            bu = 'In'
+        else:
+            bu = 'Out'
+        return bu
+
+    def preferred_topt(self, t_body, burrow_temp, open_temp):
+        if t_body >= self.t_pref_opt:
+            prob_flip =  (t_body - self.t_pref_opt) / (self.t_pref_max - self.t_pref_opt)
+            if burrow_temp < open_temp:
+                flip_direction = 'In'
+            else:
+                flip_direction = 'Out'
+        elif t_body < self.t_pref_opt:
+            prob_flip =  (self.t_pref_opt - t_body) / (self.t_pref_opt - self.t_pref_min)
+            if burrow_temp > open_temp:
+                flip_direction = 'In'
+            else:
+                flip_direction = 'Out'
+        if self.rng.random() <= prob_flip:
+            bu = flip_direction
+            self.state_switch = 'Switch'
+        elif self.state_switch is None:
+            bu = self.random_flips()
+            self.current_state = bu
+        else:
+            self.state_switch == 'Stay'
+            bu = self.current_state
+        return bu
+
+    def boundary_tpref(self, burrow_temp, open_temp):
+        if t_body<=self.t_pref_min and open_temp>burrow_temp:
+            # Leave Burrow to warm up
+            t_env=open_temp #go to the warmest microhabitat
+            bu = 'Out'
+        elif t_body>=self.t_pref_max and open_temp>burrow_temp:
+            # go into cool mh to cool down
+            t_env=burrow_temp
+            bu = 'In'
+        elif t_body<=self.t_pref_min and open_temp<burrow_temp:
+            t_env=burrow_temp
+            bu = 'In'
+        else:
+            t_env=open_temp
+            bu = 'Out'
+        return bu
+
+
+    def do_i_flip(self, t_body, burrow_temp, open_temp):
         if self.flip_logic == 'random':
-            if rng.random() <= 0.5:
-                bu = 'In'
-            else:
-                bu = 'Out'
+            bu = self.random_flips()
         elif self.flip_logic == 'preferred':
-            raise NotImplementedError()
+            bu = self.preferred_topt(t_body = t_body, burrow_temp = burrow_temp, open_temp = open_temp)
         elif self.flip_logic == 'boundary':
-            if t_crit_min is None or t_crit_max is None:
-                if t_body<=t_pref_min and open_temp>burrow_temp:
-                    # Leave Burrow to warm up
-                    t_env=open_temp #go to the warmest microhabitat
-                    bu = 'Out'
-                elif t_body>=t_pref_max and open_temp>burrow_temp:
-                    # go into cool mh to cool down
-                    t_env=burrow_temp
-                    bu = 'In'
-                elif t_body<=t_pref_min and open_temp<burrow_temp:
-                    t_env=burrow_temp
-                    bu = 'In'
-                else:
-                    t_env=open_temp
-                    bu = 'Out'
-            else:
-                if t_body>=t_crit_max:
-                    # go into burrow youre about to burn to death
-                    t_env=burrow_temp
-                    bu = 'In'
-                elif t_body<=t_crit_min:
-                    # go into burrow youre about to freeze to death
-                    t_env=burrow_temp
-                    bu = 'In'
-                elif t_body<=t_pref_min and open_temp>burrow_temp:
-                    # Leave Burrow to warm up
-                    t_env=open_temp #go to the warmest microhabitat
-                    bu = 'Out'
-                elif t_body>=t_pref_max and open_temp>burrow_temp:
-                    # go into cool mh to cool down
-                    t_env=burrow_temp
-                    bu = 'In'
-                elif t_body<=t_pref_min and open_temp<burrow_temp:
-                    # Its too cold out, go into burrow
-                    t_env=burrow_temp
-                    bu = 'In'
-                else:
-                    t_env=open_temp
-                    bu = 'Out'
+            bu = self.boundary_tpref(t_body = t_body, burrow_temp = burrow_temp, open_temp = open_temp)
         else:
             raise ValueError(f'No {self.flip_logic} defined')
         return bu
 
 
-    def tb_simulator_2_state_model(self, 
-                                    t_body, t_pref_min, t_pref_max,
-                                    burrow_temp = burrow_temp, open_temp = open_temp,
-                                    t_crit_min=None, t_crit_max=None):
-        bu  = self.do_i_flip(t_body = t_body, t_pref_min = t_pref_min, t_pref_max = t_pref_max,
-                                burrow_temp = burrow_temp, open_temp = open_temp)
-        #bu = self.deb_class.debounce_alg(input_state = bu)
-        if bu=='In':
-            t_env=burrow_temp
-        else:
-            t_env=open_temp
-        return bu, t_env
-
     def tb_simulator_2_state_model_wrapper(self, 
                                            k, t_initial,
-                                           t_pref_min, t_pref_max,
                                             burrow_temp_vector, open_temp_vector,
                                            t_crit_min=None, t_crit_max=None,
                                            return_tbody_sim=False):
@@ -147,67 +145,20 @@ class ThermalSimulator(object):
         t_body=t_initial
         time=0
         for index, (burrow_temp, open_temp) in enumerate(zip(burrow_temp_vector, open_temp_vector)):
-            bu, t_env = self.tb_simulator_2_state_model(t_body=t_body, t_pref_min=t_pref_min, t_pref_max=t_pref_max, burrow_temp=burrow_temp, open_temp=open_temp)
+            bu = self.do_i_flip(t_body = t_body, burrow_temp = burrow_temp, open_temp = open_temp)
+            if bu=='In':
+                t_env=burrow_temp
+            else:
+                t_env=open_temp
             simulated_t_body.append(t_body)
             burrow_usage.append(bu)
+            #self.current_bu = bu
             t_body = self.cooling_eq_k(k=k, t_body=t_body, t_env=t_env, time=time)
             time+=1
         if return_tbody_sim:
             return burrow_usage, simulated_t_body
         else:
             return burrow_usage
-
-    # def tb_simulator_n_state_model(self, 
-    #                                k, t_initial,
-    #                                t_pref_min, t_pref_max, burrow_temp_vector,
-    #                                t_crit_min=None, t_crit_max=None,
-    #                                return_tbody_sim=False, return_microhabitat=False, **t_env_vectors,):
-    #     simulated_t_body = []
-    #     burrow_usage = []
-    #     microhabitat = []
-    #     df = pd.DataFrame.from_dict(t_env_layers)
-    #     df['Burrow_Temp'] = burrow_temp_vector
-    #     t_body=t_initial
-    #     time=0
-    #     for index, row in df.iterrows():
-    #         min_outside_env_index = row.loc[:, row.columns != 'Burrow_Temp'].idxmin()
-    #         min_outside_env_val = row[min_outside_env_index]
-    #         max_outside_env_index = row.loc[:, row.columns != 'Burrow_Temp'].idxmax()
-    #         max_outside_env_val = row[max_outside_env_index]
-    #         if t_crit_min is None or t_crit_max is None:
-    #             pass
-
-    #         else:
-    #             if t_body>=t_crit_max:
-    #                 # go into burrow youre about to burn to death
-    #                 t_env=row['Burrow_Temp']
-    #                 bu = 'In'
-    #             elif t_body<=t_crit_min:
-    #                 # go into burrow youre about to freeze to death
-    #                 t_env=row['Burrow_Temp']
-    #                 bu = 'In'
-    #             elif t_body<=t_pref_min and open_temp>burrow_temp:
-    #                 # Leave Burrow to warm up
-    #                 t_env=max_outside_env_val #go to the warmest microhabitat
-    #                 bu = 'Out'
-    #                 mh = row.columns[max_outside_env_index]
-    #             elif t_body>=t_pref_max and open_temp>burrow_temp:
-    #                 # go into cool mh to cool down
-    #                 t_env=row['Burrow_Temp']
-    #                 bu = 'In'
-    #             elif t_body<=t_pref_min and open_temp<burrow_temp:
-    #                 t_env=row['Burrow_Temp']
-    #                 bu = 'In'
-    #             else:
-    #                 t_env=open_temp
-    #                 bu = 'Out'
-    #                 # forage
-    #         simulated_t_body.append(t_body)
-    #         burrow_usage.append(bu)
-    #         t_body = self.cooling_eq_k(k=k, t_body=t_body, t_env=t_env, time=time)
-    #         #t_body = round(t_body + rate_of_heat_transfer_k(k=k, t_body=t_body, t_env=t_env),5)
-    #         time+=1
-        
 
 
 if __name__ ==  "__main__":
