@@ -82,6 +82,7 @@ class ThermalSimulator(object):
         return bu
 
     def preferred_topt(self, t_body, burrow_temp, open_temp):
+        prob_flip = 0
         if t_body >= self.t_pref_opt:
             prob_flip =  (t_body - self.t_pref_opt) / (self.t_pref_max - self.t_pref_opt)
             if burrow_temp < open_temp:
@@ -105,7 +106,7 @@ class ThermalSimulator(object):
             bu = self.current_state
         return bu
 
-    def boundary_tpref(self, burrow_temp, open_temp):
+    def boundary_tpref(self,t_body, burrow_temp, open_temp):
         if t_body<=self.t_pref_min and open_temp>burrow_temp:
             # Leave Burrow to warm up
             t_env=open_temp #go to the warmest microhabitat
