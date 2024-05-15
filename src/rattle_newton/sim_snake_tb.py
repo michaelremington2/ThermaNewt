@@ -44,7 +44,10 @@ class ThermalSimulator(object):
         return k*(t_body-t_env)
 
     def cooling_eq_k(self, k, t_body, t_env, time):
-        return t_env+(t_body-t_env)*math.exp(-k*time)
+        return t_env+(t_body-t_env)*math.exp(-k*1) # add time back in if it doesnt work
+
+    # def cooling_eq_k(self, k, t_body, t_env, time):
+    #     return t_env+(t_body-t_env)*math.exp(-k*time)
 
     def k_approximation(self,t_body, t_body_prev, tenv_prev,  time):
         k = math.log(abs((t_body - tenv_prev) / (t_body_prev  - tenv_prev))) / time
