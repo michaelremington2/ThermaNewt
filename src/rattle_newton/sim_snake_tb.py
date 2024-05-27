@@ -43,8 +43,8 @@ class ThermalSimulator(object):
     def rate_of_heat_transfer_k(self, k, t_body, t_env):
         return k*(t_body-t_env)
 
-    def cooling_eq_k(self, k, t_body, t_env, time):
-        return t_env+(t_body-t_env)*math.exp(-k*1) # add time back in if it doesnt work
+    def cooling_eq_k(self, k, t_body, t_env, delta_t):
+        return t_env+(t_body-t_env)*math.exp(-k*delta_t) # add time back in if it doesnt work
 
     # def cooling_eq_k(self, k, t_body, t_env, time):
     #     return t_env+(t_body-t_env)*math.exp(-k*time)
@@ -140,7 +140,7 @@ class ThermalSimulator(object):
 
 
     def tb_simulator_2_state_model_wrapper(self, 
-                                           k, t_initial,
+                                           k, t_initial, delta_t, 
                                             burrow_temp_vector, open_temp_vector,
                                            t_crit_min=None, t_crit_max=None,
                                            return_tbody_sim=False):
@@ -157,7 +157,7 @@ class ThermalSimulator(object):
             simulated_t_body.append(t_body)
             burrow_usage.append(bu)
             #self.current_bu = bu
-            t_body = self.cooling_eq_k(k=k, t_body=t_body, t_env=t_env, time=time)
+            t_body = self.cooling_eq_k(k=k, t_body=t_body, t_env=t_env, delta_t=delta_t)
             time+=1
         if return_tbody_sim:
             return burrow_usage, simulated_t_body
