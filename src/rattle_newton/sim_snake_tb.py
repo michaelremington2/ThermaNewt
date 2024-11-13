@@ -84,6 +84,31 @@ class ThermalSimulator(object):
             bu = 'Out'
         return bu
 
+    def preferred_topt_temp(self, t_body, burrow_temp, open_temp):
+        prob_flip = 0
+        if t_body >= self.t_pref_opt:
+            prob_flip = 1
+            if burrow_temp < open_temp:
+                flip_direction = 'In'
+            else:
+                flip_direction = 'Out'
+        elif t_body < self.t_pref_opt:
+            prob_flip =  (self.t_pref_opt - t_body) / (self.t_pref_opt - self.t_pref_min)
+            if burrow_temp > open_temp:
+                flip_direction = 'In'
+            else:
+                flip_direction = 'Out'
+        if self.rng.random() <= prob_flip:
+            bu = flip_direction
+            self.state_switch = 'Switch'
+        elif self.state_switch is None:
+            bu = self.random_flips()
+            self.current_state = bu
+        else:
+            self.state_switch == 'Stay'
+            bu = self.current_state
+        return bu
+
     def preferred_topt(self, t_body, burrow_temp, open_temp):
         prob_flip = 0
         if t_body >= self.t_pref_opt:
