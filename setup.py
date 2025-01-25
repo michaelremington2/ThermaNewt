@@ -8,7 +8,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(
-    name='ThermNewt',
+    name='therma_newt',
     version='0.0.1',
     url='https://github.com/michaelremington2/ThermaNewt',
     author='Michael Remington and Jeet Sukumaran',
