@@ -3,7 +3,7 @@
 requires = ["setuptools", "wheel"]  # PEP 508 specifications.
 
 [project]
-name = "therma_newt"
+name = "ThermaNewt"
 version = "0.0.1"
 authors = [
   { name="Michael Remington", email="michaelremington2@gmail.com" },
