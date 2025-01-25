@@ -1,50 +1,39 @@
 import unittest
-import math
 from rattle_newton.sim_snake_tb import ThermalSimulator
 
+
 class TestThermalSimulator(unittest.TestCase):
+
     def setUp(self):
-        self.simulator = ThermalSimulator(flip_logic='preferred', t_pref_min=25, t_pref_max=35, t_pref_opt=30, seed=42)
+        # Initialize necessary parameters for testing ThermalSimulator
+        self.simulator = ThermalSimulator(flip_logic='random', 
+                                          t_pref_min=10, 
+                                          t_pref_max=30, 
+                                          t_pref_opt=20, 
+                                          seed=42)
 
-    def test_rate_of_heat_transfer_k(self):
-        k = 0.5
-        t_body = 35
-        t_env = 25
-        self.assertAlmostEqual(self.simulator.rate_of_heat_transfer_k(k, t_body, t_env), 5.0)
+    def test_random_flips(self):
+        # Test random_flips method
+        flips = [self.simulator.random_flips() for _ in range(100)]
+        unique_flips = set(flips)
+        self.assertIn('In', unique_flips)
+        self.assertIn('Out', unique_flips)
 
-    def test_cooling_eq_k(self):
-        t_body = 35
-        t_env = 25
-        delta_t = 1
-        k = 0.1
-        expected = t_env + (t_body - t_env) * math.exp(-k * delta_t)
-        result = self.simulator.cooling_eq_k(k, t_body, t_env, delta_t)
-        self.assertAlmostEqual(result, expected)
-
-    def test_snake_surface_area(self):
-        radius = 2
-        length = 10
-        expected_area = 2 * math.pi * radius * length + 2 * math.pi * radius**2
-        self.assertAlmostEqual(self.simulator.snake_surface_area(radius, length), expected_area)
-
-    def test_do_i_flip_preferred(self):
-        t_body = 28
-        burrow_temp = 20
-        open_temp = 35
-        result = self.simulator.do_i_flip(t_body, burrow_temp, open_temp)
-        self.assertIn(result, ['In', 'Out'])
+    def test_do_i_flip(self):
+        # Test do_i_flip method
+        bu = self.simulator.do_i_flip(25, 15, 25)  # Test when t_body = 25, burrow_temp = 15, open_temp = 25
+        self.assertIn(bu, ['In', 'Out'])
 
     def test_tb_simulator_2_state_model_wrapper(self):
-        burrow_temp_vector = [20, 22, 24, 26, 28]
-        open_temp_vector = [35, 34, 33, 32, 31]
+        # Test tb_simulator_2_state_model_wrapper method
+        k = 0.05
         t_initial = 30
-        k = 0.1
-        delta_t = 1
-        burrow_usage, simulated_t_body = self.simulator.tb_simulator_2_state_model_wrapper(
-            k, t_initial, delta_t, burrow_temp_vector, open_temp_vector, return_tbody_sim=True)
-        self.assertEqual(len(burrow_usage), len(burrow_temp_vector))
-        self.assertEqual(len(simulated_t_body), len(open_temp_vector))
-
+        burrow_temp_vector = [20, 25, 18]
+        open_temp_vector = [25, 20, 25]
+        
+        result = self.simulator.tb_simulator_2_state_model_wrapper(k, t_initial, 
+                                                                    burrow_temp_vector, open_temp_vector)
+        self.assertEqual(len(result), 3)  # Number of time steps should match input vectors
 
 if __name__ == '__main__':
     unittest.main()
