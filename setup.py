@@ -8,9 +8,9 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(
-    name='rattle-newton',
+    name='ThermNewt',
     version='0.0.1',
-    url='https://github.com/michaelremington2/rattle-newton',
+    url='https://github.com/michaelremington2/ThermaNewt',
     author='Michael Remington and Jeet Sukumaran',
     author_email='michaelremington2@gmail.com',
     license="LICENSE.txt",
