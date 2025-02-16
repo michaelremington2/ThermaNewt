@@ -105,33 +105,49 @@ class ThermalSimulator(object):
             bu = self.random_flips()
             self.current_state = bu
         else:
-            self.state_switch == 'Stay'
+            self.state_switch = 'Stay'
             bu = self.current_state
         return bu
 
     def preferred_topt(self, t_body, burrow_temp, open_temp):
+        """Determines if the snake should switch microhabitats based on preferred temperatures."""
         prob_flip = 0
-        if t_body >= self.t_pref_opt:
-            prob_flip =  (t_body - self.t_pref_opt) / (self.t_pref_max - self.t_pref_opt)
-            if burrow_temp < open_temp:
-                flip_direction = 'In'
-            else:
-                flip_direction = 'Out'
+        bu = None  # Ensure bu is always initialized
+
+        # Case 1: Exact optimal temperature → Stay in current microhabitat
+        if t_body == self.t_pref_opt:
+            print(f"DEBUG: t_body == t_pref_opt ({self.t_pref_opt}). Staying in current state.")
+            return self.current_state if self.current_state else self.random_flips()
+
+        # Case 2: Above or below optimal temperature → Compute prob_flip & flip direction
+        if t_body > self.t_pref_opt:
+            prob_flip = (t_body - self.t_pref_opt) / (self.t_pref_max - self.t_pref_opt)
+            flip_direction = 'In' if burrow_temp < open_temp else 'Out'
         elif t_body < self.t_pref_opt:
-            prob_flip =  (self.t_pref_opt - t_body) / (self.t_pref_opt - self.t_pref_min)
-            if burrow_temp > open_temp:
-                flip_direction = 'In'
-            else:
-                flip_direction = 'Out'
+            prob_flip = (self.t_pref_opt - t_body) / (self.t_pref_opt - self.t_pref_min)
+            flip_direction = 'In' if burrow_temp > open_temp else 'Out'
+
+        # Case 3: No temperature difference between microhabitats → No flip, stay put
+        if burrow_temp == open_temp:
+            print("DEBUG: burrow_temp == open_temp, no strong preference. Staying put.")
+            return self.current_state if self.current_state else self.random_flips()
+
+        # Case 4: Apply probability logic for flipping
         if self.rng.random() <= prob_flip:
             bu = flip_direction
             self.state_switch = 'Switch'
-        elif self.state_switch is None:
+        elif self.state_switch is None:  # First decision → Random flip
             bu = self.random_flips()
             self.current_state = bu
-        else:
-            self.state_switch == 'Stay'
+        else:  # Case 5: Maintain previous state
+            self.state_switch = 'Stay'
             bu = self.current_state
+
+        # Final Check: If `bu` is still None, fall back on staying in place
+        if bu is None:
+            print("WARNING: preferred_topt() did not resolve a valid state. Defaulting to current state.")
+            bu = self.current_state if self.current_state else 'Out'  # Default to current or Out
+
         return bu
 
     def boundary_tpref(self,t_body, burrow_temp, open_temp):
