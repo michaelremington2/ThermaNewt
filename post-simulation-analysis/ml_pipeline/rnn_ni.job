@@ -1,0 +1,12 @@
+#! /bin/bash
+#PBS -M mremington3369@sdsu.edu
+#PBS -m aeb
+#PBS -V
+#PBS -N rnn_ni
+#PBS -l walltime=1000:00:00
+
+cd $PBS_O_WORKDIR
+source /home/mremington/anaconda3/etc/profile.d/conda.sh
+conda activate rn_ml_env
+
+python3 non_imp_rnn_pipeline.py

@@ -95,7 +95,7 @@ class ThermalSimulator(object):
             prob_flip = 1
         return prob_flip
 
-    def best_habitat_t_opt(self, burrow_temp, open_temp):
+    def best_habitat_t_opt(self, t_body,burrow_temp, open_temp):
         if t_body > self.t_pref_opt and burrow_temp < open_temp:
             flip_direction = 'In'
         elif t_body < self.t_pref_opt and burrow_temp > open_temp:
@@ -125,7 +125,7 @@ class ThermalSimulator(object):
 
         # Decide to flip microhabitats based on a random draw and the calculated probability.
         if self.rng.random() <= prob_flip:
-            bu = self.best_habitat_t_opt(burrow_temp=burrow_temp, open_temp=open_temp)
+            bu = self.best_habitat_t_opt(t_body = t_body, burrow_temp=burrow_temp, open_temp=open_temp)
         else: 
             bu = self.current_state if self.current_state else self.random_flips()
         
@@ -179,7 +179,7 @@ class ThermalSimulator(object):
         if self.flip_logic == 'random':
             bu = self.random_flips()
         elif self.flip_logic == 'preferred':
-            bu = self.preferred_topt(t_body = t_body)
+            bu = self.preferred_topt(t_body = t_body, burrow_temp=burrow_temp, open_temp=open_temp)
         elif self.flip_logic == 'boundary':
             bu = self.boundary_tpref(t_body = t_body, burrow_temp = burrow_temp, open_temp = open_temp)
         else:
